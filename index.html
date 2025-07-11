@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Academic Assistant</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>📘 AI Academic Assistant</h1>
+
+    <!-- Upload PDF Section -->
+    <form id="pdfForm">
+      <label for="pdfFile">Upload your PDF:</label>
+      <input type="file" id="pdfFile" name="pdf" accept=".pdf" required>
+      <button type="submit">Summarize</button>
+    </form>
+    <div id="summaryOutput" class="output-box"></div>
+
+    <hr>
+
+    <!-- Ask a Question Section -->
+    <form id="questionForm">
+      <label for="questionInput">Ask a question:</label>
+      <input type="text" id="questionInput" name="question" required>
+      <button type="submit">Ask</button>
+    </form>
+    <div id="answerOutput" class="output-box"></div>
+
+    <hr>
+
+    <!-- Teach Me This Section -->
+    <form id="teachForm">
+      <label for="topicInput">Teach me about:</label>
+      <input type="text" id="topicInput" name="topic" placeholder="e.g. Neural Networks" required>
+      <button type="submit">Teach Me This</button>
+    </form>
+    <div id="lessonOutput" class="output-box"></div>
+
+    <hr>
+
+    <!-- Chat History Panel -->
+    <h3>📜 History</h3>
+    <div id="historyPanel" class="output-box" style="max-height: 300px; overflow-y: auto;"></div>
+
+  </div>
+
+  <script>
+    const historyPanel = document.getElementById('historyPanel');
+
+    function appendToHistory(type, content) {
+      const entry = document.createElement('div');
+      entry.innerHTML = `<strong>${type}:</strong><br>${content}<hr>`;
+      historyPanel.prepend(entry);
+    }
+
+    // Summarize PDF
+    document.getElementById('pdfForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('pdf', document.getElementById('pdfFile').files[0]);
+
+      const res = await fetch('/summarize', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById('summaryOutput').innerText = data.summary;
+      appendToHistory("Summary", data.summary);
+    });
+
+    // Ask a question
+    document.getElementById('questionForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData();
+      const question = document.getElementById('questionInput').value;
+      formData.append('question', question);
+
+      const res = await fetch('/ask', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById('answerOutput').innerText = data.answer;
+      appendToHistory(`Q: ${question}`, data.answer);
+    });
+
+    // Teach Me This
+    document.getElementById('teachForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData();
+      const topic = document.getElementById('topicInput').value;
+      formData.append('topic', topic);
+
+      const res = await fetch('/teach', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById('lessonOutput').innerText = data.lesson;
+      appendToHistory(`Lesson on "${topic}"`, data.lesson);
+    });
+  </script>
+</body>
+</html>
